@@ -21,4 +21,4 @@ def get_file(filename: str):
     file_path = os.path.join(FILES_DIR, filename)
     if os.path.exists(file_path):
         return FileResponse(file_path, filename=filename)
-    return {"error": "Τΰιλ νε νΰιδεν"}
+    return {"error": "Π¤Π°ΠΉΠ» Π½Πµ Π½Π°ΠΉΠ΄ΠµΠ½"}

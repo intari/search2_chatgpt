@@ -41,7 +41,7 @@ def index_files():
 
     if docs:
         requests.post(f"{SEARCH_ENGINE}/indexes/{INDEX_NAME}/documents", json=docs)
-        print(f"Индексировано {len(docs)} файлов!")
+        print(f"РРЅРґРµРєСЃРёСЂРѕРІР°РЅРѕ {len(docs)} С„Р°Р№Р»РѕРІ!")
 
 if __name__ == "__main__":
     index_files()
