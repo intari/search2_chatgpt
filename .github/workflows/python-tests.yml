@@ -1,0 +1,73 @@
+﻿# File: .github/workflows/python-tests.yml
+
+name: Test and Build Docker Images # Обновленное имя воркфлоу
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # --- Задача 1: Запуск тестов ---
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt # Устанавливаем зависимости для тестов
+
+      - name: Run tests with pytest
+        run: |
+          pytest backend/tests/ # Запускаем тесты
+
+  # --- Задача 2: Сборка Docker образов ---
+  build_images:
+    runs-on: ubuntu-latest
+    # Запускать эту задачу только ПОСЛЕ успешного завершения задачи 'test'
+    needs: test
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4 # Снова клонируем код (каждая задача работает в своей среде)
+
+      # Шаги для настройки Docker Buildx (современный сборщик Docker)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64 # Указываем платформу (можно добавить и другие, например, linux/arm64)
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Шаг сборки образа для Backend
+      - name: Build backend image
+        run: |
+          docker build \
+            --tag myapp-backend:latest \
+            --file backend/Dockerfile \
+            ./backend # Контекст сборки - папка ./backend
+
+      # Шаг сборки образа для Frontend
+      - name: Build frontend image
+        run: |
+          docker build \
+            --tag myapp-frontend:latest \
+            --file frontend/Dockerfile \
+            ./frontend # Контекст сборки - папка ./frontend
+
+      # Опционально: можно добавить шаг для проверки существования образов
+      - name: Verify images built
+        run: |
+          echo "Listing built Docker images:"
+          docker images myapp-backend:latest
+          docker images myapp-frontend:latest
