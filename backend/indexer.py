@@ -174,25 +174,34 @@ def delete_from_meili_index(client: requests.Session, file_ids: List[str]) -> No
 def process_file(file_path: Path) -> Optional[Dict[str, Any]]:
     """Обрабатывает один файл: извлекает текст и формирует документ для Meilisearch."""
     filename = file_path.name
-    file_mtime = os.path.getmtime(str(file_path))
-    content = None
+    content: Optional[str] = None
     file_ext = file_path.suffix.lower()
+    processed = False # Флаг, что файл был обработан (извлечен текст)
 
     try:
         logger.debug(f"Обработка файла: {filename}")
+
+        # --- Сначала извлекаем текст ---
         if file_ext == ".txt":
             content = extract_text_from_txt(file_path)
+            processed = True
         elif file_ext == ".pdf":
             content = extract_text_from_pdf(file_path)
+            processed = True
         elif file_ext == ".epub":
             content = extract_text_from_epub(file_path)
+            processed = True
         else:
             logger.debug(f"Неподдерживаемый формат файла: {filename}. Пропускаем.")
             return None # Неподдерживаемый формат
 
-        if content is None or not content.strip():
+        # --- Если текст не извлечен или пуст ---
+        if not processed or content is None or not content.strip():
             logger.warning(f"Не удалось извлечь текст или текст пуст: {filename}")
             return None
+
+        # --- Только если текст успешно извлечен, получаем mtime ---
+        file_mtime = file_path.stat().st_mtime # Используем stat() как более надежный способ
 
         # Формируем документ для Meilisearch
         document = {
@@ -203,7 +212,7 @@ def process_file(file_path: Path) -> Optional[Dict[str, Any]]:
         }
         return document
 
-    except (ValueError, IOError, Exception) as e:
+    except (ValueError, IOError, FileNotFoundError, Exception) as e: # Добавим FileNotFoundError на всякий случай
         # Ловим ошибки чтения, парсинга или другие проблемы с файлом
         logger.error(f"❌ Ошибка обработки файла {filename}: {e}")
         return None # Пропускаем этот файл
