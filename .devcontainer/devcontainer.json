@@ -1,8 +1,28 @@
 {
-    "name": "Search Dev",
-    "dockerComposeFile": "docker-compose.yml",
-    "service": "backend",
-    "workspaceFolder": "/app",
-    "extensions": ["ms-python.python"],
-    "remoteUser": "root"
+    "name": "Document Search Dev",
+    "dockerComposeFile": "../docker-compose.yml", // Путь относительно .devcontainer папки
+    "service": "backend", // Сервис, к которому подключается VS Code
+    "workspaceFolder": "/app", // Рабочая папка внутри контейнера backend
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python", // Поддержка Python
+                "ms-python.vscode-pylance", // IntelliSense
+                "ms-python.flake8", // Линтер (или ruff)
+                "ms-python.mypy" // Проверка типов
+                // Можно добавить другие полезные расширения
+            ],
+            "settings": {
+                "python.pythonPath": "/usr/local/bin/python",
+                "python.linting.flake8Enabled": true,
+                "python.linting.pylintEnabled": false,
+                "python.formatting.provider": "black", // Или autopep8
+                "python.analysis.typeCheckingMode": "basic" // Включаем MyPy
+            }
+        }
+    },
+    // Запуск от не-root пользователя (если базовый образ python это позволяет)
+    // "remoteUser": "vscode" // Или другое имя пользователя, созданного в Dockerfile
+    "remoteUser": "root" // Оставляем root для простоты, т.к. базовый образ python его использует
 }
+

@@ -1,7 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard] # Включает поддержку websockets и др., [standard] рекомендован uvicorn
 requests
 pdfminer.six
 ebooklib
 beautifulsoup4
 python-dotenv
+# Зависимости для тестов
+pytest
+httpx # Для FastAPI TestClient

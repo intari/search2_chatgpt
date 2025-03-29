@@ -2,25 +2,82 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Поиск</title>
+    <title>Поиск по документам</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+        #query { padding: 10px; width: 300px; margin-right: 5px; }
+        button { padding: 10px; cursor: pointer; }
+        #results { list-style: none; padding: 0; margin-top: 20px; }
+        #results li { border: 1px solid #ddd; margin-bottom: 15px; padding: 15px; border-radius: 4px; background-color: #f9f9f9; }
+        #results li a { font-weight: bold; color: #007bff; text-decoration: none; }
+        #results li a:hover { text-decoration: underline; }
+        .snippet { margin-top: 8px; color: #555; font-size: 0.9em; }
+        .snippet em { font-weight: bold; background-color: yellow; } /* Подсветка */
+        #status { margin-top: 15px; font-style: italic; color: #888; }
+    </style>
 </head>
 <body>
-    <input id="query" type="text" placeholder="Введите запрос">
+    <h1>Поиск по документам</h1>
+    <input id="query" type="text" placeholder="Введите поисковый запрос" onkeyup="handleKey(event)">
     <button onclick="search()">Искать</button>
+    <div id="status"></div>
     <ul id="results"></ul>
 
     <script>
+        const searchInput = document.getElementById("query");
+        const resultsList = document.getElementById("results");
+        const statusDiv = document.getElementById("status");
+
+        function handleKey(event) {
+            // Запускаем поиск по нажатию Enter
+            if (event.key === "Enter") {
+                search();
+            }
+        }
+
         async function search() {
-            let query = document.getElementById("query").value;
-            let res = await fetch(`/search?q=` + query);
-            let data = await res.json();
-            let list = document.getElementById("results");
-            list.innerHTML = "";
-            data.results.forEach(doc => {
-                let item = document.createElement("li");
-                item.innerHTML = `<a href="/files/${doc.id}">${doc.id}</a>: ${doc.content.substring(0, 200)}...`;
-                list.appendChild(item);
-            });
+            let query = searchInput.value.trim();
+            if (!query) {
+                resultsList.innerHTML = "";
+                statusDiv.textContent = "Введите запрос для поиска.";
+                return;
+            }
+
+            resultsList.innerHTML = ""; // Очищаем предыдущие результаты
+            statusDiv.textContent = "Идет поиск..."; // Показываем статус
+
+            try {
+                // Используем относительный путь, т.к. Nginx проксирует /search
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}&limit=50`); // Запрашиваем до 50 результатов
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                     statusDiv.textContent = `Найдено результатов: ${data.results.length}`;
+                     data.results.forEach(doc => {
+                        const item = document.createElement("li");
+                        // Ссылка ведет на эндпоинт бэкенда для скачивания файла
+                        // Используем doc.id (имя файла)
+                        const fileLink = `<a href="/files/${encodeURIComponent(doc.id)}" target="_blank">${doc.id}</a>`;
+
+                        // Отображаем подсвеченный фрагмент (_formatted.content)
+                        const snippetHTML = doc.content ? `<div class="snippet">${doc.content}</div>` : '<div class="snippet">(нет превью)</div>';
+
+                        item.innerHTML = `${fileLink}${snippetHTML}`;
+                        resultsList.appendChild(item);
+                    });
+                } else {
+                    statusDiv.textContent = "Ничего не найдено.";
+                }
+            } catch (error) {
+                console.error("Ошибка поиска:", error);
+                statusDiv.textContent = `Ошибка: ${error.message}. Попробуйте еще раз позже.`;
+                resultsList.innerHTML = ""; // Очищаем на случай ошибки
+            }
         }
     </script>
 </body>
