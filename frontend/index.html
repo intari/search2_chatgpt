@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Поиск</title>
+</head>
+<body>
+    <input id="query" type="text" placeholder="Введите запрос">
+    <button onclick="search()">Искать</button>
+    <ul id="results"></ul>
+
+    <script>
+        async function search() {
+            let query = document.getElementById("query").value;
+            let res = await fetch(`/search?q=` + query);
+            let data = await res.json();
+            let list = document.getElementById("results");
+            list.innerHTML = "";
+            data.results.forEach(doc => {
+                let item = document.createElement("li");
+                item.innerHTML = `<a href="/files/${doc.id}">${doc.id}</a>: ${doc.content.substring(0, 200)}...`;
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>

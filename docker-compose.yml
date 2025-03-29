@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: meilisearch
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_NO_ANALYTICS=true
+    restart: unless-stopped
+    volumes:
+      - meili_data:/meili_data
+
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ${LOCAL_STORAGE_PATH}:/mnt/storage
+    depends_on:
+      - meilisearch
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: cifs
+              count: 1
+              capabilities: [gpu]
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ${LOCAL_STORAGE_PATH}:/usr/share/nginx/html/files
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  meili_data:
+  smb_share:
+    driver_opts:
+      type: cifs
+      o: username=${SMB_USER},password=${SMB_PASSWORD},vers=3.0
+      device: ${SMB_STORAGE_PATH}

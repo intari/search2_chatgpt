@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+requests
+pdfminer.six
+ebooklib
+beautifulsoup4
+python-dotenv

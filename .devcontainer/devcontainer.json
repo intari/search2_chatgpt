@@ -1,0 +1,8 @@
+{
+    "name": "Search Dev",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "backend",
+    "workspaceFolder": "/app",
+    "extensions": ["ms-python.python"],
+    "remoteUser": "root"
+}
