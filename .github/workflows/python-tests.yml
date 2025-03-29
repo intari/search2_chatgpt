@@ -1,6 +1,6 @@
 ﻿# File: .github/workflows/python-tests.yml
 
-name: Test and Build Docker Images # Обновленное имя воркфлоу
+name: Test and Build Docker Images
 
 on:
   push:
@@ -24,48 +24,46 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt # Устанавливаем зависимости для тестов
+          pip install -r backend/requirements.txt
 
       - name: Run tests with pytest
+        env: # Устанавливаем PYTHONPATH для этого шага
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          pytest backend/tests/ # Запускаем тесты
+          # Запускаем pytest
+          pytest backend/tests/
 
   # --- Задача 2: Сборка Docker образов ---
   build_images:
     runs-on: ubuntu-latest
-    # Запускать эту задачу только ПОСЛЕ успешного завершения задачи 'test'
-    needs: test
+    needs: test # Запускать только после успешных тестов
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4 # Снова клонируем код (каждая задача работает в своей среде)
+        uses: actions/checkout@v4
 
-      # Шаги для настройки Docker Buildx (современный сборщик Docker)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: linux/amd64 # Указываем платформу (можно добавить и другие, например, linux/arm64)
+          platforms: linux/amd64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Шаг сборки образа для Backend
       - name: Build backend image
         run: |
           docker build \
             --tag myapp-backend:latest \
             --file backend/Dockerfile \
-            ./backend # Контекст сборки - папка ./backend
+            ./backend
 
-      # Шаг сборки образа для Frontend
       - name: Build frontend image
         run: |
           docker build \
             --tag myapp-frontend:latest \
             --file frontend/Dockerfile \
-            ./frontend # Контекст сборки - папка ./frontend
+            ./frontend
 
-      # Опционально: можно добавить шаг для проверки существования образов
       - name: Verify images built
         run: |
           echo "Listing built Docker images:"
