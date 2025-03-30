@@ -41,6 +41,13 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+ 
+     - name: Show Environment Variables Inside Job Container
+        run: |
+          echo "--- Environment Variables ---"
+          env | sort # Выводим переменные окружения
+          echo "---------------------------"
+          echo "DOCKER_HOST variable is: '$DOCKER_HOST'" # Проверяем конкретно DOCKER_HOST
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
