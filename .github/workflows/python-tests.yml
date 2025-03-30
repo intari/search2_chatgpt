@@ -9,6 +9,32 @@ on:
     branches: [ main ]
 
 jobs:
+  # Задача 0 - прогон диагностики
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Early diagnostics...
+        run: |
+          echo This is 
+          cat /etc/os-release
+          echo Running on `uname -a` by `whoami` 
+          echo CPU info:
+          lscpu
+          echo PCI info
+          lspci
+          echo Memory:
+          free -h
+          echo Disk:
+          df -h  
+          echo Docker is
+          docker -v
+      - name: Show Environment Variables Inside Job Container
+        run: |
+          echo "--- Environment Variables ---"
+          env | sort # Выводим переменные окружения
+          echo "---------------------------"
+          echo "DOCKER_HOST variable is: '$DOCKER_HOST'" # Проверяем конкретно DOCKER_HOST
+
   # --- Задача 1: Запуск тестов ---
   test:
     runs-on: ubuntu-latest
