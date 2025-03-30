@@ -42,7 +42,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
  
-     - name: Show Environment Variables Inside Job Container
+      - name: Show Environment Variables Inside Job Container
         run: |
           echo "--- Environment Variables ---"
           env | sort # Выводим переменные окружения
